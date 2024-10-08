@@ -6,7 +6,7 @@ For this data challenge, your goal is to use new baseball data on bat speed and 
 
 Since these data are new, there are a variety of topics that have not previously been studied. Below are a few example topics. However, we note that this list is far from exhaustive. Participants should feel free to study any aspect of the batter, pitcher, or batter-pitcher interaction that interests them, provided that bat speed and swing length are used in the analysis in some meaningful way.
   - Batter Specific Plate Discipline. Can bat speed and swing length be used to measure some aspect of plate discipline?
-        - Are these data useful in analyzing a batter’s decision to swing at a pitch? For example, can faster swingers be more patient?
+      Are these data useful in analyzing a batter’s decision to swing at a pitch? For example, can faster swingers be more patient?
         - Are bat speed or swing length related to a hitter’s ability to foul off 2-strike pitches, or protect the plate?
         - How is pitch location related to the above ideas? See https://baseballsavant.mlb.com/visuals/swing-take?playerId=545361 which may give you some ideas.
     
