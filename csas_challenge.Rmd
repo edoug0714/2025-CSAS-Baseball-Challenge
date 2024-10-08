@@ -1,0 +1,48 @@
+```{r}
+#Libraries
+#install.packages(tidyverse)
+#install.packages(plyr)
+#install.packages("baseballr")
+
+library(tidyverse)
+library(plyr)
+library("baseballr")
+```
+
+```{r}
+data <- read.csv("C:/Users/edoug/Downloads/csas_challenge_data.csv")
+head(data)
+```
+
+**Small samples are not indicitive of a player's actual abilities. Therefore, we decided not to consider players with under 50 plate appearances.**
+```{r}
+#Get a list of players over 50 PA's
+PA <- data %>% 
+  filter(events != "") %>%
+  group_by(player_name) %>%
+  summarize(plate_appearances = n()) %>%
+  filter(plate_appearances >= 50) %>%
+  arrange(desc(plate_appearances))
+
+over_50 <- as.list(PA$player_name)
+```
+
+```{r}
+#Get player's average bat speed
+bat_speed <- data %>% 
+  filter(!is.na(bat_speed)) %>%
+  filter(player_name %in% over_50) %>%
+  group_by(player_name) %>%
+  summarize(average_bat_speed = mean(bat_speed)) %>%
+  arrange(desc(average_bat_speed))
+
+head(bat_speed)
+```
+```{r}
+#Get player's average bat speed with 2 strikes
+two_strikes_bs <-  
+```
+
+
+
+
