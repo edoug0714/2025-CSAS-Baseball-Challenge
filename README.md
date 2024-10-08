@@ -7,14 +7,14 @@ For this data challenge, your goal is to use new baseball data on bat speed and 
 Since these data are new, there are a variety of topics that have not previously been studied. Below are a few example topics. However, we note that this list is far from exhaustive. Participants should feel free to study any aspect of the batter, pitcher, or batter-pitcher interaction that interests them, provided that bat speed and swing length are used in the analysis in some meaningful way.
   - Batter Specific Plate Discipline. Can bat speed and swing length be used to measure some aspect of plate discipline?
       - Are these data useful in analyzing a batter’s decision to swing at a pitch? For example, can faster swingers be more patient?
-        - Are bat speed or swing length related to a hitter’s ability to foul off 2-strike pitches, or protect the plate?
-        - How is pitch location related to the above ideas? See https://baseballsavant.mlb.com/visuals/swing-take?playerId=545361 which may give you some ideas.
+      - Are bat speed or swing length related to a hitter’s ability to foul off 2-strike pitches, or protect the plate?
+      - How is pitch location related to the above ideas? See https://baseballsavant.mlb.com/visuals/swing-take?playerId=545361 which may give you some ideas.
     
   - Do players have different types of swings? Are these swing types related to situation (count, base runners, outs), pitcher, pitch location, pitch type, or anything else?
     
   - Do pitchers modify batter behavior or do batters modify pitcher behavior (or neither! Or both!!):
-        - Can pitchers “dictate” swings, or is it all the batter? Are swing lengths longer against certain pitchers? To what extent is that due to pitch velocity or spin rate, as opposed to other pitcher-specific factors?
-        - Do pitchers modify behavior against batters with higher/lower bat speed (e.g. throw to different locations, throw different types of pitches, etc.)?
+      - Can pitchers “dictate” swings, or is it all the batter? Are swing lengths longer against certain pitchers? To what extent is that due to pitch velocity or spin rate, as opposed to other pitcher-specific factors?
+      - Do pitchers modify behavior against batters with higher/lower bat speed (e.g. throw to different locations, throw different types of pitches, etc.)?
     
 # Data
 The data is in this shared folder. The csv file is large and may not open in the online version of Excel in your web browser. You'll have to click Download and create a local copy on your computer. The file contains data up through June 30, 2024. Data from the second half of the season will be updated at the end of the regular season.
@@ -30,9 +30,9 @@ Given the challenge's popularity, we would like to know the number of participat
 Students must submit a zip file containing:
   - A pdf report describing their results (max 3000 words)
   - A folder with
-        - Documented code files
-        - A README file describing what each file does.
-        - (Optional) If you use additional public data, include it here to ensure your work is fully reproducible
+      - Documented code files
+      - A README file describing what each file does.
+      - (Optional) If you use additional public data, include it here to ensure your work is fully reproducible
 
 Note: Students can include other files including any app code or supporting documents. Any code or apps included need to be self-contained and able to run on reviewers’ computers without modification.
 
