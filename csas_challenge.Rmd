@@ -38,6 +38,7 @@ bat_speed <- data %>%
 
 head(bat_speed)
 ```
+
 ```{r}
 #Get player's average bat speed with 2 strikes
 two_strikes_bs <-  
