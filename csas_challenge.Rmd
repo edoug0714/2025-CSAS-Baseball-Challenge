@@ -14,36 +14,142 @@ data <- read.csv("C:/Users/edoug/Downloads/csas_challenge_data.csv")
 head(data)
 ```
 
-**Small samples are not indicitive of a player's actual abilities. Therefore, we decided not to consider players with under 50 plate appearances.**
+**Small samples are not indicative of a player's actual abilities. Therefore, we decided to create a list of players with over 50 plate appearances we could filter future data with.**
 ```{r}
 #Get a list of players over 50 PA's
 PA <- data %>% 
   filter(events != "") %>%
   group_by(player_name) %>%
-  summarize(plate_appearances = n()) %>%
+  dplyr::summarize(plate_appearances = n()) %>%
   filter(plate_appearances >= 50) %>%
   arrange(desc(plate_appearances))
 
 over_50 <- as.list(PA$player_name)
 ```
 
+**In order to perform analysis on bat speed data, we had to create a table with all player stats first. This is so we can eventually check for correlation between basic stats such as batting average and our bat speed data.**
+```{r}
+#Group all data by player and event to get all events per player (ex: CJ Abrams singles)
+stats <- data %>%
+  filter(events != "") %>%
+  group_by(player_name, events) %>%
+  dplyr::summarize(count = n(), .groups = 'drop')
+
+#Use pivot_wider function to make a usable dataframe and calculate rate stats (ex: batting average)
+stats_wide <- stats %>%
+  pivot_wider(names_from = events, values_from = count) %>%
+  replace(is.na(.), 0) %>%
+  mutate(hits = single + double + triple + home_run, 
+         singles = single, 
+         doubles = double, 
+         triples = triple, 
+         home_runs = home_run,
+         walks = walk,
+         hbp = hit_by_pitch,
+         plate_appearances = hits + walk + hbp + double_play + field_error + field_out + force_out + grounded_into_double_play + sac_fly + strikeout +  fielders_choice +   fielders_choice_out + catcher_interf + sac_bunt + triple_play + strikeout_double_play + sac_fly_double_play, 
+         at_bats = plate_appearances - walk - hit_by_pitch - sac_fly - catcher_interf - sac_bunt - sac_fly - sac_fly_double_play,
+         avg = round(hits / at_bats, 3),
+         obp = round((hits + walks + hbp) / (at_bats + walks + hbp + sac_fly + sac_bunt), 3),
+         slg = round((singles + 2 * doubles + 3 * triples + 4 * home_runs) / at_bats, 3),
+         ops = obp + slg) %>%
+  select(player_name, plate_appearances, at_bats, hits, singles, doubles, triples, home_runs, avg, obp, slg, ops)
+
+stats_wide
+```
+
 ```{r}
 #Get player's average bat speed
-bat_speed <- data %>% 
+avg_bat_speed <- data %>% 
   filter(!is.na(bat_speed)) %>%
-  filter(player_name %in% over_50) %>%
   group_by(player_name) %>%
-  summarize(average_bat_speed = mean(bat_speed)) %>%
+  dplyr::summarize(average_bat_speed = mean(bat_speed)) %>%
   arrange(desc(average_bat_speed))
 
-head(bat_speed)
+head(avg_bat_speed)
 ```
 
 ```{r}
 #Get player's average bat speed with 2 strikes
-two_strikes_bs <-  
+two_strikes_bat_speed <- data %>% 
+  filter(!is.na(bat_speed)) %>%
+  filter(strikes == 2) %>%
+  group_by(player_name) %>%
+  dplyr::summarize(average_bat_speed = mean(bat_speed)) %>%
+  arrange(desc(average_bat_speed))
+
+head(two_strikes_bat_speed)
 ```
 
+```{r}
+bat_speed_df <- avg_bat_speed %>% 
+  left_join(two_strikes_bat_speed, by = "player_name")
+bat_speed_df
+```
 
+**After combining the player stats and bat speed data, we have our table that will be used for the bulk of the analysis. Including players with a small sample of data can create misleading results. We decided to remove any players with less than 50 plate appearances to counteract this trend.**
+```{r}
+stats_wide <- stats_wide %>%
+  filter(player_name %in% over_50)
+
+bat_speed_df <- bat_speed_df %>%
+  filter(player_name %in% over_50)
+
+stats_table <- stats_wide %>%
+  left_join(bat_speed_df, by = "player_name") %>%
+  mutate(avg_bat_speed = average_bat_speed.x,
+         avg_two_strike_bat_speed = average_bat_speed.y) %>%
+  select(!c(average_bat_speed.x, average_bat_speed.y))
+
+stats_table
+```
+
+**The first step**
+```{r}
+high_velo <- data %>%
+  filter(events != "") %>%
+  filter(pitch_type %in% c('SL', 'CU', 'SW')) %>%
+  group_by(player_name, events) %>%
+  dplyr::summarize(count = n(), .groups = 'drop')
+
+high_velo_wide <- high_velo %>%
+  pivot_wider(names_from = events, values_from = count) %>%
+  replace(is.na(.), 0) %>%
+  mutate(hits = single + double + triple + home_run, 
+         singles = single, 
+         doubles = double, 
+         triples = triple, 
+         home_runs = home_run,
+         walks = walk,
+         hbp = hit_by_pitch,
+         plate_appearances = hits + walk + hbp + double_play + field_error + field_out + force_out + grounded_into_double_play + sac_fly + strikeout +  fielders_choice +   fielders_choice_out + catcher_interf + sac_bunt + + strikeout_double_play, 
+         at_bats = plate_appearances - walk - hit_by_pitch - sac_fly - catcher_interf - sac_bunt - sac_fly,
+         avg = round(hits / at_bats, 3),
+         obp = round((hits + walks + hbp) / (at_bats + walks + hbp + sac_fly + sac_bunt), 3),
+         slg = round((singles + 2 * doubles + 3 * triples + 4 * home_runs) / at_bats, 3),
+         ops = obp + slg) %>%
+  select(player_name, plate_appearances, at_bats, hits, singles, doubles, triples, home_runs, avg, obp, slg, ops)
+
+high_velo_table <- high_velo_wide %>%
+  left_join(bat_speed_df, by = "player_name") %>%
+  mutate(avg_bat_speed = average_bat_speed.x,
+         avg_two_strike_bat_speed = average_bat_speed.y) %>%
+  select(!c(average_bat_speed.x, average_bat_speed.y))
+
+high_velo_table <- na.omit(high_velo_table)
+
+high_velo_table
+```
+
+**
+```{r}
+avg_diff <- stats_table$avg - high_velo_table$avg
+obp_diff <- stats_table$obp - high_velo_table$obp
+ops_diff <- stats_table$ops - high_velo_table$ops
+
+stat_diff <- data.frame(avg_diff, obp_diff, ops_diff, stats_table$avg_bat_speed)
+
+cormat <- round(cor(stat_diff), 2)
+cormat
+```
 
 
