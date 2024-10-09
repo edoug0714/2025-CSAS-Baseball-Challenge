@@ -8,6 +8,17 @@ library(tidyverse)
 library(plyr)
 library("baseballr")
 ```
+```{r}
+plot_sz <- function() {
+  x_range = c(-8.5/12, 8.5/12)
+  y_range = c(1.5, 3.5)
+  segments(x0 = c(8.5/12, -8.5/12, 8.5/12 - 17/36, 17/36 - 8.5/12), y0 = rep(y_range[1], 4), x1 = c(8.5/12, -8.5/12, 8.5/12 - 17/36, 17/36 - 8.5/12), y1 = rep(y_range[2], 4), col = 'black', lwd = 4)
+  segments(x0 = rep(x_range[1], 4), y0 = c(1.5, 3.5, 3.5 - 2/3, 3.5 - 4/3), x1 = rep(x_range[2], 4), y1 = c(1.5, 3.5, 3.5 - 2/3, 3.5 - 4/3), col = 'black', lwd = 4)
+  segments(x0 = c(8.5/12, -8.5/12, 8.5/12 - 17/36, 17/36 - 8.5/12), y0 = rep(y_range[1], 4), x1 = c(8.5/12, -8.5/12, 8.5/12 - 17/36, 17/36 - 8.5/12), y1 = rep(y_range[2], 4), col = 'white', lwd = 2)
+  segments(x0 = rep(x_range[1], 4), y0 = c(1.5, 3.5, 3.5 - 2/3, 3.5 - 4/3), x1 = rep(x_range[2], 4), y1 = c(1.5, 3.5, 3.5 - 2/3, 3.5 - 4/3), col = 'white', lwd = 2)
+}
+```
+
 
 ```{r}
 data <- read.csv("C:/Users/edoug/Downloads/csas_challenge_data.csv")
@@ -103,53 +114,55 @@ stats_table <- stats_wide %>%
 stats_table
 ```
 
-**The first step**
 ```{r}
-high_velo <- data %>%
-  filter(events != "") %>%
-  filter(pitch_type %in% c('SL', 'CU', 'SW')) %>%
-  group_by(player_name, events) %>%
-  dplyr::summarize(count = n(), .groups = 'drop')
+top_25 <- bat_speed_df %>%
+  filter(average_bat_speed.x > quantile(bat_speed_df$average_bat_speed.x)[4]) %>%
+  select(player_name)
+top_25
 
-high_velo_wide <- high_velo %>%
-  pivot_wider(names_from = events, values_from = count) %>%
-  replace(is.na(.), 0) %>%
-  mutate(hits = single + double + triple + home_run, 
-         singles = single, 
-         doubles = double, 
-         triples = triple, 
-         home_runs = home_run,
-         walks = walk,
-         hbp = hit_by_pitch,
-         plate_appearances = hits + walk + hbp + double_play + field_error + field_out + force_out + grounded_into_double_play + sac_fly + strikeout +  fielders_choice +   fielders_choice_out + catcher_interf + sac_bunt + + strikeout_double_play, 
-         at_bats = plate_appearances - walk - hit_by_pitch - sac_fly - catcher_interf - sac_bunt - sac_fly,
-         avg = round(hits / at_bats, 3),
-         obp = round((hits + walks + hbp) / (at_bats + walks + hbp + sac_fly + sac_bunt), 3),
-         slg = round((singles + 2 * doubles + 3 * triples + 4 * home_runs) / at_bats, 3),
-         ops = obp + slg) %>%
-  select(player_name, plate_appearances, at_bats, hits, singles, doubles, triples, home_runs, avg, obp, slg, ops)
-
-high_velo_table <- high_velo_wide %>%
-  left_join(bat_speed_df, by = "player_name") %>%
-  mutate(avg_bat_speed = average_bat_speed.x,
-         avg_two_strike_bat_speed = average_bat_speed.y) %>%
-  select(!c(average_bat_speed.x, average_bat_speed.y))
-
-high_velo_table <- na.omit(high_velo_table)
-
-high_velo_table
+bot_25 <- bat_speed_df %>%
+  filter(average_bat_speed.x < quantile(bat_speed_df$average_bat_speed.x)[2]) %>%
+  select(player_name)
+bot_25
 ```
 
-**
 ```{r}
-avg_diff <- stats_table$avg - high_velo_table$avg
-obp_diff <- stats_table$obp - high_velo_table$obp
-ops_diff <- stats_table$ops - high_velo_table$ops
+zone_data <- data %>%
+  select(player_name, plate_x, plate_z, sz_top, sz_bot, zone, description)
 
-stat_diff <- data.frame(avg_diff, obp_diff, ops_diff, stats_table$avg_bat_speed)
+plot(zone_data$plate_x, zone_data$plate_z, xlim = c(-5, 5), ylim = c(0, 5), asp = 1, col = zone_data$zone)
 
-cormat <- round(cor(stat_diff), 2)
-cormat
+#Plot Strike Zone
+plot_sz()
+```
+**Testing data mutation to adjust all pitches based on batter strike zone**
+```{r}
+zone_data_adj <- zone_data %>%
+  mutate(new_plate_z = 1.5 + (plate_z - sz_bot) / (sz_top - sz_bot) * 2)
+
+plot(zone_data_adj$plate_x, zone_data_adj$new_plate_z, xlim = c(-5, 5), ylim = c(0, 5), asp = 1, col = zone_data_adj$zone)
+
+#Plot Strike Zone
+plot_sz()
 ```
 
 
+```{r}
+zone_data_1 <- data %>%
+  select(player_name, plate_x, plate_z, zone, sz_top, sz_bot, description, events) %>%
+  filter(events %in% c('single', 'double', 'triple', 'home_run', 'field_out', 'field_error', 'fielders_choice', 'fielders_choice_out', 'double_play', 'triple_play', 'other_out', 'force_out', 'strikeout', 'strikeout_double_play', 'grounded_into_double_play')) %>%
+  mutate(total_bases = case_when(
+    events == "single" ~ 1,
+    events == "double" ~ 2,
+    events == "triple" ~ 3,
+    events == "home_run" ~ 4,
+    TRUE ~ 0
+  )) %>%
+  mutate(group = case_when(
+    player_name %in% top_25$player_name ~ 1,
+    player_name %in% bot_25$player_name ~ 2,
+    TRUE ~ 0
+  )) #%>% select(plate_x, plate_y, total_bases, group)
+
+zone_data_1
+```
